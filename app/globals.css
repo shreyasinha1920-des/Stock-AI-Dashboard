@@ -1,0 +1,327 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Aurum tokens, taken from the framer design skill (dark, as in its screenshots).
+ * Every colour below is from the skill palette; nothing is invented.
+ */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-garamond), ui-serif, Georgia, serif;
+  --font-mono: ui-monospace, "JetBrains Mono", monospace;
+  --font-heading: var(--font-display);
+
+  /* Aurum palette */
+  --color-ink: #ffffff;
+  --color-ink-2: #cccccc;
+  --color-ink-muted: #999999;
+  --color-ink-subtle: #888888;
+  --color-surface: #111111;
+  --color-hairline: #1f1f1f;
+  --color-hairline-strong: #444444;
+  /* Boundaries of interactive controls: 4.6:1 on black (WCAG 1.4.11 needs 3:1). */
+  --color-edge: #757575;
+  --color-raised: #333333;
+  --color-brand: #0000ee;
+  --color-brand-text: #0099ff;
+  --color-violet: #8856ff;
+  --color-up: #00bb88;
+  --color-down: #d67a5c;
+  --color-warn: #ffbb00;
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+
+  /* Skill breakpoints */
+  --breakpoint-lg: 810px;
+  --breakpoint-xl: 1200px;
+
+  /* Skill motion tokens */
+  --ease-framer: cubic-bezier(0.44, 0, 0.56, 1);
+}
+
+/* Dark only. The shadcn variables are mapped onto the Aurum palette. */
+:root {
+  color-scheme: dark;
+  --radius: 10px;
+  --background: #000000;
+  --foreground: #ffffff;
+  --card: #111111;
+  --card-foreground: #ffffff;
+  --popover: #111111;
+  --popover-foreground: #ffffff;
+  --primary: #ffffff;
+  --primary-foreground: #000000;
+  --secondary: #1f1f1f;
+  --secondary-foreground: #ffffff;
+  --muted: #1f1f1f;
+  --muted-foreground: #999999;
+  --accent: #1f1f1f;
+  --accent-foreground: #ffffff;
+  --destructive: #d67a5c;
+  --border: #1f1f1f;
+  --input: #1f1f1f;
+  --ring: #0099ff;
+
+  /* Orb palette: accent-led, from the skill's blues and violet. */
+  --orb-bg: #000000;
+  --orb-c1: #0099ff;
+  --orb-c2: #0000ee;
+  --orb-c3: #8856ff;
+  --orb-c4: #00bb88;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    @apply font-sans;
+    scrollbar-gutter: stable;
+    background: #000000;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  ::selection {
+    background: #0099ff4d;
+  }
+  /* The skill's focus treatment: a clear outline, never a box-shadow ring. */
+  :focus-visible {
+    outline: 2px solid #0099ff;
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .num {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" on;
+  }
+
+  .eyebrow {
+    font-size: 12px;
+    line-height: 16px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #999999;
+  }
+
+  .kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 4px;
+    border: 1px solid #444444;
+    border-radius: 4px;
+    font-size: 12px;
+    line-height: 1;
+    color: #999999;
+  }
+
+  /*
+   * Framer-style hairline cells. Every card is a plain #000 cell in a grid
+   * whose 1px gaps show the #1f1f1f frame behind it.
+   */
+  .cell,
+  .recede {
+    position: relative;
+    transition:
+      box-shadow 300ms var(--ease-framer),
+      filter 300ms var(--ease-framer);
+  }
+  .cell {
+    background: #000000;
+    pointer-events: auto;
+  }
+  .cell[data-dimmed="true"],
+  .recede[data-dimmed="true"] {
+    filter: brightness(0.42) saturate(0.5);
+  }
+
+  /*
+   * Dither veil: a Bayer-style dot screen laid over dimmed cards while the
+   * conversation is open. It stands in for a blur (the skill bans blur).
+   */
+  .cell::after,
+  .recede::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    background-image:
+      radial-gradient(#000000 1px, transparent 1.2px),
+      radial-gradient(#000000 1px, transparent 1.2px);
+    background-size: 4px 4px;
+    background-position:
+      0 0,
+      2px 2px;
+    transition: opacity 300ms var(--ease-framer);
+  }
+  .cell[data-dimmed="true"]::after,
+  .recede[data-dimmed="true"]::after {
+    opacity: 0.9;
+  }
+
+  /* Lit by the AI: the answer on stage is talking about this card. */
+  .cell[data-lit="true"] {
+    background: #000000;
+    box-shadow:
+      inset 0 0 0 1px #0099ff,
+      0 0 0 1px #0000ee,
+      0 0 48px #0000ee66;
+    z-index: 2;
+  }
+
+  .row-lit {
+    background: linear-gradient(90deg, #0000ee33, #0000ee00 70%);
+    box-shadow: inset 2px 0 0 #0099ff;
+  }
+}
+
+/*
+ * The Ask field. A colour sweep in the orb's palette flashes around its edge,
+ * so the way into the AI is the most alive thing on the page. The resting
+ * part of the edge stays #757575, so the boundary always meets 3:1.
+ */
+@property --field-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.ai-field {
+  --field-edge: #757575;
+  position: relative;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(#050505, #050505) padding-box,
+    conic-gradient(
+        from var(--field-angle),
+        var(--field-edge) 0deg,
+        var(--field-edge) 170deg,
+        #0000ee 220deg,
+        #0099ff 262deg,
+        #8856ff 300deg,
+        #00bb88 332deg,
+        var(--field-edge) 360deg
+      )
+      border-box;
+  animation:
+    field-sweep 5s cubic-bezier(0.44, 0, 0.56, 1) infinite,
+    field-flash 5s cubic-bezier(0.44, 0, 0.56, 1) infinite;
+}
+.ai-field:hover,
+.ai-field:focus-within,
+.ai-field[data-active] {
+  animation-duration: 1.8s, 1.8s;
+}
+
+@keyframes field-sweep {
+  to {
+    --field-angle: 360deg;
+  }
+}
+
+/* A soft glow that swells as the colours pass the bottom edge. */
+@keyframes field-flash {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px #0000ee1a,
+      0 16px 48px -20px #0000ee55;
+  }
+  55% {
+    box-shadow:
+      0 0 0 4px #0099ff1f,
+      0 16px 56px -12px #0000eeaa;
+  }
+}
+
+/*
+ * Text over the orb: a feathered 60% shade keeps the worst case (the orb's
+ * brightest highlight) at 5.3:1 or better for every text colour.
+ */
+.hero-scrim {
+  position: relative;
+  isolation: isolate;
+}
+.hero-scrim::before {
+  content: "";
+  position: absolute;
+  inset: -24px -32px;
+  z-index: -1;
+  pointer-events: none;
+  background: rgb(0 0 0 / 0.6);
+  mask-image:
+    linear-gradient(to right, transparent, #000 32px, #000 calc(100% - 32px), transparent),
+    linear-gradient(to bottom, transparent, #000 24px, #000 calc(100% - 24px), transparent);
+  mask-composite: intersect;
+}
+
+/* The ambient orb stops its CSS loops while off-screen or behind the stage. */
+[data-orb-paused] .siri-orb::before,
+[data-orb-paused] .siri-orb-sheen {
+  animation-play-state: paused;
+}
+
+/* Saved holdings load right after hydration; hide the sample numbers until then. */
+.portfolio-pending main {
+  visibility: hidden;
+}
+
+/*
+ * Entrance: GSAP reveals [data-reveal] on load. They start hidden only when
+ * motion is allowed; the failsafe shows them even if scripts never run.
+ */
+.motion-ok [data-reveal],
+.motion-ok .cell > * {
+  opacity: 0;
+  animation: reveal-failsafe 0s 3s forwards;
+}
+@keyframes reveal-failsafe {
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
